@@ -20,7 +20,7 @@ def get_session():
 def initialise_db():
     result = Postgres_DB.test_connection(engine=engine)
     # db.drop_all_tables()
-    # Snowflake_DB.create_all_tables(engine=engine, overwrite=False)
+    Postgres_DB.create_all_tables(engine=engine, overwrite=True)
 
 def dispose_db():
     engine.dispose()

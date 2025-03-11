@@ -3,7 +3,7 @@ from sqlalchemy import Engine, Connection, select, text, Column
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.postgres.utils import unix_timestamp
-# from app.postgres.mappings import Base
+from app.postgres.mappings import Base
 
 # QoL imports
 from typing import Type, List, Dict, Tuple
@@ -26,27 +26,27 @@ class Postgres_DB:
             print(f"[!] (Postgres) Connection Failure: {str(e)}")
             return False
 
-    # @staticmethod
-    # def create_all_tables(engine: Engine, overwrite=True):
-    #     try:
-    #         if overwrite:
-    #             if not Postgres_DB.drop_all_tables(engine=engine):
-    #                 # drop tables failure
-    #                 return False
-    #         Base.metadata.create_all(engine)
-    #         return True
-    #     except (SQLAlchemyError, Exception) as e:
-    #         print(f"[!] (Postgres) Failed to create tables: {e}")
-    #         return False
+    @staticmethod
+    def create_all_tables(engine: Engine, overwrite=True):
+        try:
+            if overwrite:
+                if not Postgres_DB.drop_all_tables(engine=engine):
+                    # drop tables failure
+                    return False
+            Base.metadata.create_all(engine)
+            return True
+        except (SQLAlchemyError, Exception) as e:
+            print(f"[!] (Postgres) Failed to create tables: {e}")
+            return False
 
-    # @staticmethod
-    # def drop_all_tables(engine: Engine):
-    #     try:
-    #         Base.metadata.drop_all(engine)
-    #         return True
-    #     except SQLAlchemyError as e:
-    #         print(f"[!] (Postgres) Failed to drop tables: {e}")
-    #         return False
+    @staticmethod
+    def drop_all_tables(engine: Engine):
+        try:
+            Base.metadata.drop_all(engine)
+            return True
+        except SQLAlchemyError as e:
+            print(f"[!] (Postgres) Failed to drop tables: {e}")
+            return False
 
     # @staticmethod
     # def retrieve(session: Session, tbl: Type[Base], value = None, col_name: str = "id") -> (bool, dict):
