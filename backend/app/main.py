@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.dependencies import initialise_db, dispose_db
-# from app.routers import jobs, sem_configs, images, inferences, equipments, bookings
+from app.routers import users
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,6 +18,8 @@ async def lifespan(app: FastAPI):
     dispose_db()
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(users.router)
 
 @app.get("/")
 def read_root():

@@ -3,6 +3,7 @@ from sqlalchemy import ForeignKey, String, CHAR, Integer, Text, Float, ARRAY, Da
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from uuid import uuid4, UUID
 from datetime import date, datetime
+import hashlib, os, secrets
 
 class Base(DeclarativeBase):
     created_at: Mapped[int] = mapped_column(Integer)
@@ -27,11 +28,8 @@ class User(Base):
     def __repr__(self):
         return f'User (Email: {self.email!r}, Name: {self.last_name!r} {self.first_name!r})'
     
-    def set_password(self, password: str):
-        self.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    
-    def check_password(self, password: str):
-        return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+    def authenticate(self, input_pwd_hash: str):
+        return secrets.compare_digest(input_pwd_hash.encode('utf-8'), self.password_hash.encode('utf-8'))
     
 class Audio_File(Base):
     __tablename__ = 'audio_files'
