@@ -16,20 +16,20 @@ class User(Base):
     __tablename__ = 'users'
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    username: Mapped[str] = mapped_column(String(20), unique=True)
     email: Mapped[str] = mapped_column(String(320), unique=True)
     password_hash: Mapped[str] = mapped_column(String(60))
-    first_name: Mapped[str] = mapped_column(String(50))
-    last_name: Mapped[str] = mapped_column(String(50))
-    role: Mapped[str] = mapped_column(Enum('admin', 'user', name='role_enum'))
+    full_name: Mapped[str] = mapped_column(String(50))
+    disabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # one-to-many relationship
     audio_files: Mapped[List["Audio_File"]] = relationship(back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'User (Email: {self.email!r}, Name: {self.last_name!r} {self.first_name!r})'
+        return f'User (Email: {self.email!r}, Name: {self.full_name!r})'
     
-    def authenticate(self, input_pwd_hash: str):
-        return secrets.compare_digest(input_pwd_hash.encode('utf-8'), self.password_hash.encode('utf-8'))
+    def authenticate(self, hashed_password: str):
+        return secrets.compare_digest(hashed_password.encode('utf-8'), self.password_hash.encode('utf-8'))
     
 class Audio_File(Base):
     __tablename__ = 'audio_files'

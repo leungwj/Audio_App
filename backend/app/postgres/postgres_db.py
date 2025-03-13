@@ -150,7 +150,7 @@ class Postgres_DB:
                 if new_value is None:
                     nullable = getattr(col, "nullable")
                     if not nullable:
-                        raise Exception(f"Column {col_name} cannot be None.")
+                        new_value = curr_value
 
                 if curr_value != new_value:
                     setattr(obj, col_name, new_value)
