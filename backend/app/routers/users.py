@@ -3,7 +3,7 @@ from typing import Union, Annotated, Tuple, Dict, Any
 
 # FastAPI-related imports
 from fastapi import APIRouter, Form, status, Response, Depends, HTTPException
-from app.dependencies import get_session, oauth2_scheme, pwd_context, decode_access_token, create_access_token
+from app.dependencies import get_session, oauth2_scheme, decode_access_token, create_access_token, verify_password, get_password_hash
 from app.postgres.postgres_db import Postgres_DB
 from app.postgres.mappings import User
 from app.routers.base import BaseRouter
@@ -173,16 +173,10 @@ def validate_user(session: Session, obj: User) -> Tuple[bool, Dict[str, Any]]:
         return False, {
             "error": str(e)
         }
-    
+
 
 # Authentication Functions
 # ------------------------
-
-def verify_password(plain_password: str, hashed_password: str):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password: str):
-    return pwd_context.hash(password)
 
 def authenticate_user(
     username: str,

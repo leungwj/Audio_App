@@ -30,7 +30,7 @@ class Postgres_DB:
             return False
 
     @staticmethod
-    def create_all_tables(engine: Engine, overwrite=True):
+    def create_all_tables(engine: Engine, overwrite=False):
         try:
             if overwrite:
                 if not Postgres_DB.drop_all_tables(engine=engine):

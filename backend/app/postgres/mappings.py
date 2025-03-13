@@ -34,6 +34,7 @@ class Audio_File(Base):
     description: Mapped[str] = mapped_column(String(100))
     category: Mapped[str] = mapped_column(String(50))
     blob_name: Mapped[UUID] = mapped_column(Uuid)
+    content_type: Mapped[str] = mapped_column(String(50))
 
     # many-to-one relationship
     user: Mapped["User"] = relationship(back_populates='audio_files')

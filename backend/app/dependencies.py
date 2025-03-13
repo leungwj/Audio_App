@@ -6,6 +6,7 @@ from typing import Union
 # FastAPI-related imports
 from app.postgres.postgres_db import Postgres_DB
 from fastapi import HTTPException, status
+from app.postgres.mappings import User
 
 # SQLAlchemy-related imports
 from sqlalchemy import create_engine, Engine
@@ -33,15 +34,57 @@ def get_session():
         yield session
 
 def initialise_db():
-    result = Postgres_DB.test_connection(engine=engine)
-    # db.drop_all_tables()
-    # TODO: Only run this if the tables don't exist
-    # TODO: Seed a default user if the users table is empty
-    # Postgres_DB.create_all_tables(engine=engine, overwrite=True)
+    try:
+        success = Postgres_DB.test_connection(engine=engine)
+
+        if not success:
+            raise Exception("Could not connect to the database")
+
+        success = Postgres_DB.create_all_tables(engine=engine)
+
+        if not success:
+            raise Exception("Could not create tables")
+        
+        success = create_default_user(engine=engine)
+
+        if not success:
+            raise Exception("Could not create default user")
+
+    except Exception as e:
+        print(f"[!] (FastAPI) Fatal Error: {e}")
 
 def dispose_db():
     engine.dispose()
 
+@staticmethod
+def create_default_user(engine: Engine) -> bool:
+
+    with Session(engine) as session:
+        try:
+            success, res = Postgres_DB.retrieve(session=session, tbl=User, value="admin", col_name="username")
+
+            if not success:
+                raise Exception(res.get("error"))
+            elif len(res.get("objs")) > 0: # user already exists
+                return True
+
+            user = User(
+                username="admin",
+                email="admin@gmail.com",
+                password_hash=get_password_hash("admin"),
+                full_name="Administrator"
+            )
+
+            success, res = Postgres_DB.insert(session=session, obj=user)
+
+            if not success:
+                raise Exception(res.get("error"))
+            
+            return True
+    
+        except Exception as e:
+            print(f"[!] (Postgres) Failed to create default user: {e}")
+            return False
 
 # Token-related functions
 # -----------------------
@@ -89,3 +132,12 @@ def decode_access_token(
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+# Auth-related functions
+# -----------------------
+
+def verify_password(plain_password: str, hashed_password: str):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str):
+    return pwd_context.hash(password)
