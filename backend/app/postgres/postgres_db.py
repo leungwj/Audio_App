@@ -77,7 +77,7 @@ class Postgres_DB:
             }
 
     @staticmethod
-    def insert(session: Session, obj: Base, pk_constraint: bool = True, fk_constraint: bool = True) -> Tuple[bool, Dict[str, Any]]:
+    def insert(session: Session, obj: Base, pk_constraint: bool = False, fk_constraint: bool = False) -> Tuple[bool, Dict[str, Any]]:
         try:
             # session.begin()
             if pk_constraint and obj.id is not None:
@@ -126,7 +126,7 @@ class Postgres_DB:
             }
 
     @staticmethod
-    def update(session: Session, updated_obj: Base) -> (bool, dict):
+    def update(session: Session, updated_obj: Base) -> Tuple[bool, Dict[str, Any]]:
         try:
             # session.begin()
             delta = False
@@ -176,7 +176,7 @@ class Postgres_DB:
             }
 
     @staticmethod
-    def delete(session: Session, obj: Base, fk_constraint: bool = True, soft_delete = False) -> Tuple[bool, Dict[str, Any]]:
+    def delete(session: Session, obj: Base, fk_constraint: bool = False, soft_delete = False) -> Tuple[bool, Dict[str, Any]]:
         try:
             # session.begin()
             if fk_constraint:

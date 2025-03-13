@@ -1,11 +1,9 @@
 # Sytem imports
-import os
 from typing import Union, Annotated, Tuple, Dict, Any
-from datetime import datetime, timedelta, timezone
 
 # FastAPI-related imports
 from fastapi import APIRouter, Form, status, Response, Depends, HTTPException
-from app.dependencies import get_session, oauth2_scheme, pwd_context
+from app.dependencies import get_session, oauth2_scheme, pwd_context, decode_access_token, create_access_token
 from app.postgres.postgres_db import Postgres_DB
 from app.postgres.mappings import User
 from app.routers.base import BaseRouter
@@ -13,10 +11,6 @@ from app.routers.base import BaseRouter
 # SQLAlchemy-related imports
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
-
-# token-related imports
-import jwt
-from jwt.exceptions import InvalidTokenError
 
 # Extra imports
 from uuid import UUID
@@ -35,9 +29,9 @@ class UserScheme(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     username: str
-    email: Union[str, None] = None
-    full_name: Union[str, None] = None
-    disabled: Union[bool, None] = None
+    email: str
+    full_name: str
+    disabled: bool
 
 # Invoked from main.py's /token route
 async def login_for_access_token(
@@ -53,17 +47,21 @@ async def login_for_access_token(
         
         user: User = res.get("user")
 
-        access_token_expires = timedelta(minutes=float(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")))
-        acccess_token = create_access_token(
+        success, res = create_access_token(
             data = {
                 "sub": str(user.id)
-            },
-            expires_delta = access_token_expires
+            }
         )
 
-        return Token(access_token=acccess_token, token_type="bearer")
+        if not success:
+            raise Exception(res.get("error"))
+        
+        print(res)
+
+        return res
     
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail = str(e),
@@ -72,6 +70,7 @@ async def login_for_access_token(
 
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_current_user(
+    response: Response,
     session: Annotated[Session, Depends(get_session)],
     token: Annotated[str, Depends(oauth2_scheme)]
 ):
@@ -81,23 +80,9 @@ async def get_current_user(
         id=UUID(user_id),
         cls=User,
         scheme=UserScheme,
-        response=None,
+        response=response,
         session=session
     )
-
-# async def get_current_active_user(
-#     current_user: Annotated[User, Depends(get_current_user)],
-# ):
-#     if current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-    
-#     return current_user
-
-# @router.get("/me")
-# async def read_users_me(
-#     current_user: Annotated[User, Depends(get_current_active_user)]
-# ):
-#     return current_user
 
 # put wildcard routes last
 @router.put("/", status_code=status.HTTP_202_ACCEPTED)
@@ -224,41 +209,3 @@ def authenticate_user(
         return False, {
             "error": str(e)
         }
-
-# Token-related functions
-# -----------------------
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-def create_access_token(
-    data: dict, # contains { "sub": str(user.id) }
-    expires_delta: Union[timedelta, None] = None
-):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("JWT_SIGNING_ALGORITHM"))
-    return encoded_jwt
-
-def decode_access_token(
-    token: str
-) -> User:
-    try:
-        payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("JWT_SIGNING_ALGORITHM")])
-        user_id: str = payload.get("sub") # sub is the subject of the token, which is the user_id
-        if user_id is None:
-            raise Exception("Could not validate credentials")
-        
-        return user_id
-        
-    except (Exception, InvalidTokenError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
-            headers={"WWW-Authenticate": "Bearer"},
-        )

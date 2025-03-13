@@ -107,7 +107,7 @@ class BaseRouter:
             obj_json = scheme.model_validate(obj).model_dump_json()
 
             return {
-                "obj": obj_json,
+                "obj": obj_json
             }
 
         except Exception as e:
@@ -169,8 +169,7 @@ class BaseRouter:
             objs_json = [scheme.model_validate(obj).model_dump_json() for obj in objs]
 
             return {
-                "objs": objs_json,
-                "error": ""
+                "objs": objs_json
             }
 
         except Exception as e:
