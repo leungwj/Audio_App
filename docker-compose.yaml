@@ -8,60 +8,60 @@ volumes:
 
 services:
   # FastAPI server
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      args:
-        - POSTGRES_HOST=${POSTGRES_HOST}
-        - POSTGRES_USER=${POSTGRES_USER}
-        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-        - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-        - SECRET_KEY=${SECRET_KEY}
-        - JWT_SIGNING_ALGORITHM=${JWT_SIGNING_ALGORITHM}
-        - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
-        - AZ_STORAGE_CONNECTION_STRING=${AZ_STORAGE_CONNECTION_STRING}
-        - AZ_STORAGE_CONTAINER_NAME=${AZ_STORAGE_CONTAINER_NAME}
-
-    container_name: backend
-    ports:
-      - 8000:8000
-    networks:
-      - intranet
-    depends_on:
-      - db
-
-  # frontend:
+  # backend:
   #   build:
-  #     context: ./frontend
+  #     context: ./backend
   #     dockerfile: Dockerfile
   #     args:
-  #       - API_SERVER=${API_SERVER}
-  #   container_name: frontend
+  #       - POSTGRES_HOST=${POSTGRES_HOST}
+  #       - POSTGRES_USER=${POSTGRES_USER}
+  #       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #       - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+  #       - SECRET_KEY=${SECRET_KEY}
+  #       - JWT_SIGNING_ALGORITHM=${JWT_SIGNING_ALGORITHM}
+  #       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+  #       - AZ_STORAGE_CONNECTION_STRING=${AZ_STORAGE_CONNECTION_STRING}
+  #       - AZ_STORAGE_CONTAINER_NAME=${AZ_STORAGE_CONTAINER_NAME}
+
+  #   container_name: backend
   #   ports:
-  #     - 8501:8501
+  #     - 8000:8000
   #   networks:
   #     - intranet
   #   depends_on:
-  #     - backend
+  #     - db
 
-  db:
-    image: postgres:17-alpine
-    restart: always
-    shm_size: 128mb
-    container_name: db
-    networks:
-      - intranet
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  
-  adminer:
-    image: adminer
-    restart: always
-    container_name: adminer
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - API_SERVER=${API_SERVER}
+    container_name: frontend
     ports:
-    - 8080:8080
+      - 3000:3000
     networks:
       - intranet
+    # depends_on:
+    #   - backend
+
+  # db:
+  #   image: postgres:17-alpine
+  #   restart: always
+  #   shm_size: 128mb
+  #   container_name: db
+  #   networks:
+  #     - intranet
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   environment:
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   container_name: adminer
+  #   ports:
+  #   - 8080:8080
+  #   networks:
+  #     - intranet

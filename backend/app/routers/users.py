@@ -68,6 +68,8 @@ async def login_for_access_token(
             headers = {"WWW-Authenticate": "Bearer"}
         )
 
+# TODO: Implement get_all_users route
+
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_current_user(
     response: Response,
