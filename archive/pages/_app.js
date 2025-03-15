@@ -5,7 +5,3 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default MyApp;
-
-// export default function Square(){
-//     return <button className="square">X</button>;
-// }

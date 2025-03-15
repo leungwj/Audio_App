@@ -10,5 +10,8 @@ FROM base AS runner
 
 COPY ./ ./
 
+ARG API_SERVER
+ENV API_SERVER=${API_SERVER}
+
 EXPOSE 3000
 CMD [ "npm", "run", "dev" ]
